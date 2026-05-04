@@ -13,6 +13,7 @@ st.text('이것은 텍스트입니다!')
 
 st.divider()
 
-st.write('---')
+st.write('---') # 구분선
 
 st.write('이것도 텍스트입니다~~')
+

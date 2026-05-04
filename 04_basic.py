@@ -14,6 +14,7 @@ st.image(image, caption='전체 너비', width='stretch')
 # 이미지 원본 크기
 st.image(image, caption='원본 너비', width='content')
 
+# 이미지 작게 해서 새로운 변수에 저장!
 small_image = image.resize((200, 200))
 
 st.image(small_image, caption='stretch', width='stretch')
