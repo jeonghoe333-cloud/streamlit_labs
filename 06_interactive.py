@@ -21,6 +21,8 @@ if person == '남자':
 else : 
     st.write('당신은 여자입니다~')
 
+st.divider()
+
 # 3. 단일 선택박스
 transport = st.selectbox(
     'Q3. 가장 빠른 교통수단은?',

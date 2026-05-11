@@ -3,19 +3,25 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+
+
 # 1. 기본 페이지 설정 ------------------------------------------------
 st.set_page_config(
     page_title='코로나 19 한국 대시보드',
-    page_icon='😷',
+    page_icon='😷', # 파비콘
     layout='wide' # 전체 화면 너비를 사용하겠다!
 )
 st.title('KR 코로나19 한국 감염자 대시보드')
+
+
 
 # 2. 파일 업로더 -----------------------------------------------------
 #       파일이 업로드 되지 않았다면 None을 반환
 uploaded_confirmed = st.file_uploader('확진자 csv파일 업로드', type=['csv']) # 파일 타입이 여러개일 경우 이렇게 리스트로!
 uploaded_deaths = st.file_uploader('사망자 csv파일 업로드', type=['csv'])
 uploaded_recovered = st.file_uploader('회복자 csv파일 업로드', type=['csv'])
+
+
 
 # 3. 세 파일이 모두 업로드되었을 때만 분석 실행 ----------------------------
 #           업로드 전 : 파일 객체가 None이면 False이고 분석 실행 안함 -> 다시 업로드를 유도
@@ -53,6 +59,7 @@ if uploaded_confirmed and uploaded_deaths and uploaded_recovered : # 세 개의 
         korea_series['date'] = pd.to_datetime(korea_series['date'], format='%m/%d/%y')
 
         return korea_series
+    
     # 6. 세 개의 데이터프레임을 각각 대한민국 데이터로 변환
     df_confirmed = get_korea_data(df_confirmed, 'confirmed') # 확진자
     df_deaths = get_korea_data(df_deaths, 'deaths') # 사망자
@@ -70,6 +77,8 @@ if uploaded_confirmed and uploaded_deaths and uploaded_recovered : # 세 개의 
     df_merged['new_confirmed'] = df_merged['confirmed'].diff().fillna(0).astype(int)
     df_merged['new_deaths'] = df_merged['deaths'].diff().fillna(0).astype(int)
     df_merged['new_recovered'] = df_merged['recovered'].diff().fillna(0).astype(int)
+
+    st.table(df_merged.head(5)) # 이건 그냥 내가 df 한번 보고 싶어서
 
     # // 지금까지 데이터를 정리 좀 했고, 이제부턴 홈페이지를 꾸며볼게요 ---------------------------------------
     # 10. 탭 UI 구성
@@ -105,7 +114,7 @@ if uploaded_confirmed and uploaded_deaths and uploaded_recovered : # 세 개의 
             )
             st.plotly_chart(fig, width='stretch')
 
-             # ② 일일 신규 수치 (막대 그래프) ─────────────────────여기서부턴 복붙
+             # ② 일일 신규 수치 (막대 그래프) ──────────────────────────────────────────여기서부턴 복붙
             st.subheader("🆕 일일 증가량 그래프")
 
             # 신규 데이터용 매핑 사전 (구조는 누적용과 동일)
@@ -134,13 +143,71 @@ if uploaded_confirmed and uploaded_deaths and uploaded_recovered : # 세 개의 
                     labels={col: kor for kor, col in new_label_map.items()}
                 )
                 st.plotly_chart(fig_new, width='stretch')
+            # ──────────────────────────────────────────────────────────────────────────────
+    # 12. tab2 : 통계 요약
+    with tab2: 
+        st.subheader('일자별 통계 테이블')
+        st.dataframe(df_merged.tail(10), width='stretch') # 가장 최근 10건만 표시
+    # 13. tab3 : 비율 분석
+    with tab3:
+        st.subheader('최신일 기준 회복률 / 치명률')
 
+        # 가장 최근 날짜 데이터를 가져올거임
+        latest = df_merged.iloc[-1] 
+        confirmed = latest['confirmed']
+        deaths = latest['deaths']
+        recovered = latest['recovered']
 
+        # 비율 계산 (0 나누기 방지 : 확진자가 0이면 비율도 0으로 처리)
+        recovery_rate = (recovered / confirmed) * 100 if confirmed else 0 # confirmed에 숫자 하나라도 있으면 앞으로 가서 함수 적용
+        fatality_rate = (deaths / confirmed) * 100 if confirmed else 0
 
+        # 화면을 2열로 균등 분할
+        col1, col2 = st.columns(2)
 
+        # st.metric : 수치를 강조해서 보여주는 카드형 위젯
+        col1.metric('회복률', f'{recovery_rate:.2f} %')
+        col2.metric('치명률', f'{fatality_rate:.2f} %')
 
+        st.subheader('감염자 분포 비율')
 
+        # 파이차트용 데이터 직접 생성
+        #  : active(격리중) = 확진자 - 회복자 - 사망자 (현재 치료/격리 중인 인원)
+        pie_df = pd.DataFrame({
+            'category' : ['회복자', '사망자', '격리중'],
+            'count' : [recovered, deaths, confirmed - recovered - deaths]
+        })
+
+        fig_pie = px.pie(pie_df, names = 'category', values = 'count', title = '감염자 분포')
+        st.plotly_chart(fig_pie, width='stretch')
 
 
 else : # 파일 미업로드 시, 상태 안내 메세지
     st.info('3개의 csv파일(확진자, 사망자, 회복자)을 모두 업로드 해주세요!')
+
+
+# 혹시 중간에 놓치면, 실행 앱 - \\192.168.1.254 이게 강사님 고정ip주소?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 사람이 좀 느슨하고 편안해졌으면 좋겠다
+# 계속 집중하고 머리 쓰는 훈련해야하는데 요즘 너무 편해졌다..

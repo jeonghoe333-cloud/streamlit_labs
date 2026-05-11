@@ -42,7 +42,7 @@ start_time, end_time = st.slider(
 # 선택한 시작 시간과 종료시간을 텍스트로 출력
 st.text(f'Working time : {start_time}, {end_time}')
 
-
+# 이렇게 사용자가 드래그할 수 있는거 : interactive 
 
 
 
