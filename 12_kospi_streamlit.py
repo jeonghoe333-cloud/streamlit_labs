@@ -203,10 +203,3 @@ with tab2:
         else:
             st.warning(f'{selected_stocks[i]} 캔들스틱 차트를 불러올 수 없습니다.')
 
-
-
-
-
-
-
-
