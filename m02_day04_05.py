@@ -168,3 +168,51 @@ with tab3:
     m2.metric('R2 Score', f'{r2_1:.3f}', help='1에 가까울수록 좋음')
     m3.metric('기울기(w)', f'{w1:.4f}')
     m4.metric('절편(b)', f'{b1:.2f}')
+
+    # -------- 여기서부터 복붙 -----------------------------------------------------------------------------------------
+    		# ── 그래프 3종 ────────────────────────────────────────────
+    # c_idx  : x축에 쓸 인덱스 번호 리스트 [1, 2, 3, ..., n]
+    # error1 : 잔차 = 실젯값 - 예측값
+    #   잔차가 0 근처에서 특별한 패턴 없이 분포하면 모델이 잘 맞는 편이다.
+    c_idx  = list(range(1, len(y_te1) + 1))
+    error1 = y_te1.values - y_pred1
+
+    fig4, axes4 = plt.subplots(1, 3, figsize=(15, 4))
+
+    # ① 실젯값 vs 예측값
+    #   빨간선(실젯값)과 파란선(예측값)이 얼마나 겹치는지 시각 확인
+    axes4[0].plot(c_idx, y_te1.values, color="red",  label="실젯값", linewidth=1.2)
+    axes4[0].plot(c_idx, y_pred1,      color="blue", label="예측값",
+                  linewidth=1.2, linestyle="--")
+    axes4[0].set_title("실젯값 vs 예측값")
+    axes4[0].set_xlabel("index")
+    axes4[0].set_ylabel("Sales")
+    axes4[0].legend()
+
+    # ② 잔차 그래프
+    #   axhline(0) : y=0 기준선. 잔차가 이 선 위아래로 고르게 퍼져야 한다.
+    axes4[1].plot(c_idx, error1, color="green", linewidth=1.2)
+    axes4[1].axhline(0, color="gray", linestyle="--", linewidth=0.8)
+    axes4[1].set_title("잔차(Residual)")
+    axes4[1].set_xlabel("index")
+    axes4[1].set_ylabel("error")
+
+    # ③ 회귀선 그래프
+    #   np.linspace로 x 범위 전체를 100등분한 뒤 predict()로 y를 구한다.
+    #   → 테스트 데이터(X_te1)를 그대로 쓰면 x값이 섞인 순서라
+    #     선이 지그재그로 보일 수 있다.
+    #   pd.DataFrame({"TV": x_line}) 으로 감싸는 이유:
+    #     model1이 컬럼명이 있는 DataFrame으로 fit됐으므로
+    #     같은 형태로 넣어야 feature name 경고가 없다.
+    x_line = np.linspace(X1["TV"].min(), X1["TV"].max(), 100)
+    y_line = model1.predict(pd.DataFrame({"TV": x_line}))
+    axes4[2].scatter(X1["TV"], y1, color="red", s=15, alpha=0.5, label="전체 데이터")
+    axes4[2].plot(x_line, y_line, color="blue", linewidth=2, label="회귀선")
+    axes4[2].set_title("단순 선형 회귀선")
+    axes4[2].set_xlabel("TV 광고비 ($)")
+    axes4[2].set_ylabel("Sales")
+    axes4[2].legend()
+
+    plt.tight_layout()
+    st.pyplot(fig4)
+    plt.close(fig4)
